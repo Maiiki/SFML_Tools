@@ -46,12 +46,15 @@ int main()
 	for (int i = 0; i < 20; ++i) {
 		std::cout << vB[i] << " ";
 	}
+	std::cout << "\n";
 	for (int i = 0; i < 20; ++i) {
 		std::cout << vI[i] << " ";
 	}
+	std::cout << "\n";
 	for (int i = 0; i < 20; ++i) {
 		std::cout << vQ[i] << " ";
 	}
+	std::cout << "\n";
 
 	bSort.Sort(vB);
 	iSort.Sort(vI);
@@ -60,12 +63,15 @@ int main()
 	for (int i = 0; i < 20; ++i) {
 		std::cout << vB[i] << " ";
 	}
+	std::cout << "\n";
 	for (int i = 0; i < 20; ++i) {
 		std::cout << vI[i] << " ";
 	}
+	std::cout << "\n";
 	for (int i = 0; i < 20; ++i) {
 		std::cout << vQ[i] << " ";
 	}
+	std::cout << "\n";
 	
 	while (window.isOpen())
 	{

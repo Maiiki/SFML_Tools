@@ -29,12 +29,12 @@ public:
 	~BubbleSort() {};
 	virtual void Sort(std::vector<int>& v) {
 		if (!isSorted(v)) {
-			RunBubbleSort(v);
+			v = RunBubbleSort(v);
 		}
 	}
 
 private:
-	void RunBubbleSort(std::vector<int> v) {
+	std::vector<int> RunBubbleSort(std::vector<int> v) {
 		unsigned int i, j;
 		for (i = 0; i < v.size() - 1; ++i) {	// Cada valor de la lista
 			for (j = 0; j < v.size() - i - 1; ++j) {	// Voy a compararlo con todo los demas
@@ -45,6 +45,7 @@ private:
 				}
 			}
 		}
+		return v;
 	}
 };
 
@@ -54,11 +55,11 @@ public:
 	~InsertSort() {};
 	virtual void Sort(std::vector<int>& v) {
 		if (!isSorted(v) && v.size() > 1) {
-			RunInsertSort(v);
+			v = RunInsertSort(v);
 		}
 	}
 private:
-	void RunInsertSort(std::vector<int> v) {
+	std::vector<int> RunInsertSort(std::vector<int> v) {
 		unsigned int i;
 		int j, val;
 		for (i = 1; i < v.size(); ++i) {
@@ -68,6 +69,7 @@ private:
 			}
 			v[j + 1] = val;
 		}
+		return v;
 	}
 };
 
