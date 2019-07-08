@@ -24,12 +24,18 @@
     <ClCompile Include="line.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sorters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="circle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="line.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sorters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
