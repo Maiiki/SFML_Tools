@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-
-class lineObj
+#include "shape.h"
+class lineObj:public shapeObj
 {
 private:
 	sf::Vector2f m_bgn;
@@ -25,9 +25,8 @@ public:
 		m_line[1] = sf::Vertex(m_end, m_lineColor);
 	}
 
-	void changeColor(int r, int g, int b) {
+	void changeFillColor(int r, int g, int b) {
 		m_lineColor = sf::Color(r, g, b);
-		update();
 	}
 };
 
