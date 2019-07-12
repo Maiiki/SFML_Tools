@@ -32,7 +32,6 @@ public:
 
 	void changeFillColor(int r, int g, int b) {
 		m_fillColor = sf::Color(r, g, b);
-		update();
 	}
 };
 
