@@ -13,25 +13,29 @@ private:
 	sf::CircleShape circle;
 
 public:
-	circleObj(float radius, float posX, float posY) : m_r(radius), m_posX(posX), m_posY(posY) {
-		m_fillColor = sf::Color::Black;
+	circleObj(float radius, float posX, float posY, sf::Color color) 
+		: m_r(radius), m_posX(posX), m_posY(posY), m_fillColor(color) 
+	{
 		circle.setRadius(m_r);
 		circle.setPosition(sf::Vector2f(m_posX, m_posY));
 		circle.setFillColor(m_fillColor);
 	}
 
-	virtual void render(sf::RenderWindow* win) {
+	virtual void render(sf::RenderWindow* win) 
+	{
 		win->draw(circle);
 	}
 
-	virtual void update() {
+	virtual void update() 
+	{
 		circle.setRadius(m_r);
 		circle.setFillColor(m_fillColor);
 		circle.setPosition(sf::Vector2f(m_posX, m_posY));
 	}
 
-	void changeFillColor(int r, int g, int b) {
-		m_fillColor = sf::Color(r, g, b);
+	void changeFillColor(sf::Color color)
+	{
+		m_fillColor = color;
 	}
 };
 

@@ -37,7 +37,7 @@ public:
 
 private:
 	std::vector<int> RunBubbleSort(std::vector<int> v) {
-		unsigned int i, j;
+		std::size_t i, j;
 		for (i = 0; i < v.size() - 1; ++i) {	// Cada valor de la lista
 			for (j = 0; j < v.size() - i - 1; ++j) {	// Voy a compararlo con todo los demas
 				if (v[j] > v[j + 1]) {	// Si el valor en el que estoy es mayor al siguiente
@@ -62,8 +62,8 @@ public:
 	}
 private:
 	std::vector<int> RunInsertSort(std::vector<int> v) {
-		unsigned int i;
-		int j, val;
+		std::size_t i, j;
+		int val;
 		for (i = 1; i < v.size(); ++i) {
 			val = v[i];
 			for (j = i - 1; j >= 0 && v[j] > val; --j) {
@@ -123,7 +123,7 @@ private:
 	std::vector<int> RunQuickSort(std::vector<int> list)
 	{
 		//Saca el tamaño de la lista.
-		int Size = list.size();
+		std::size_t Size = list.size();
 
 		//Si el tamaño es 1 o menor, no hay nada que organizar.
 		if (Size < 2)

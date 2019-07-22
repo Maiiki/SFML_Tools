@@ -11,9 +11,9 @@ private:
 	sf::RectangleShape rect;
 
 public:
-	rectObj(float width, float height, float posX, float posY):m_w(width), m_h(height), m_posX(posX),m_posY(posY)
+	rectObj(float width, float height, float posX, float posY, sf::Color color)
+		:m_w(width), m_h(height), m_posX(posX),m_posY(posY),m_fillColor(color)
 	{
-		m_fillColor = sf::Color::Black;
 		rect.setSize(sf::Vector2f(m_w, m_h));
 		rect.setPosition(sf::Vector2f(m_posX, m_posY));
 		rect.setFillColor(m_fillColor);
@@ -23,17 +23,20 @@ public:
 	{
 	}
 
-	virtual void render(sf::RenderWindow* win) {
+	virtual void render(sf::RenderWindow* win) 
+	{
 		win->draw(rect);
 	}
 
-	virtual void update() {
+	virtual void update() 
+	{
 		rect.setSize(sf::Vector2f(m_w, m_h));
 		rect.setPosition(sf::Vector2f(m_posX, m_posY));
 		rect.setFillColor(m_fillColor);
 	}
 
-	virtual void changeFillColor(int r, int g, int b) {
-		m_fillColor = sf::Color(r, g, b);
+	virtual void changeFillColor(sf::Color color) 
+	{
+		m_fillColor = color;
 	}
 };
