@@ -9,30 +9,32 @@
 #include "sorters.h"
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
+#include "quadObj.h"
 
 class gameManager {
 public:
-	gameManager(std::size_t windowWidth, std::size_t windowHeight, std::size_t quadSize, std::size_t nHorGrid, std::size_t nVerGrid)
-		: m_winW(windowWidth), m_winH(windowHeight), m_nHorGrid(nHorGrid), m_nVerGrid(nVerGrid), m_quadSize(quadSize)
+	gameManager(std::size_t windowWidth, std::size_t windowHeight, std::size_t quadSize, std::size_t nHorGrid, std::size_t nVerGrid, std::size_t nMines)
+		: m_winW(windowWidth), m_winH(windowHeight), m_nHorGrid(nHorGrid), m_nVerGrid(nVerGrid), m_quadSize(quadSize), m_nMines(nMines)
 	{
 		p_win = new sf::RenderWindow(sf::VideoMode(m_winW, m_winH), "SFML Tools", sf::Style::None);
 		gameLoop();
 	}
 
 private:
-	std::size_t m_winW, m_winH, m_nHorGrid, m_nVerGrid, m_quadSize;
+	std::size_t m_winW, m_winH, m_nHorGrid, m_nVerGrid, m_quadSize, m_nMines;
 	std::vector<lineObj*> m_grid;
 	std::vector<shapeObj*> m_gameObjects;
 	sf::RenderWindow* p_win;
 	sf::Window* p_refWin;
-	std::vector<std::vector<rectObj*>>matrix_p1;
-	std::vector<std::vector<rectObj*>>matrix_p2;
+	std::vector<std::vector<quadObj*>>matrix;
+	bool b_Alive;
 
 	void gameLoop() 
 	{
 		createMatrix();
-		createGrid();
-		while (p_win->isOpen())
+		//createGrid();
+		b_Alive = true;
+		while (p_win->isOpen() && b_Alive)
 		{
 			sf::Event event;
 			while (p_win->pollEvent(event))
@@ -45,12 +47,16 @@ private:
 				{
 					if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
 					{
-						findMouseQuad(event.mouseButton.x, event.mouseButton.y);
-					}	
+						showQuad(event.mouseButton.x/m_quadSize, event.mouseButton.y/m_quadSize);
+					}
+					if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+					{
+						setWarning(event.mouseButton.x/m_quadSize, event.mouseButton.y/m_quadSize);
+					}
 				}
 			}
 
-			p_win->clear();
+			p_win->clear(sf::Color(253, 43, 134));
 			updateGame();
 			renderGame(p_win);
 			p_win->display();
@@ -60,38 +66,36 @@ private:
 
 	void updateGame() 
 	{
-		for (std::size_t i = 0; i < m_gameObjects.size(); ++i) 
+		/*for (std::size_t i = 0; i < m_gameObjects.size(); ++i) 
 		{
 			m_gameObjects[i]->update();
-		}
+		}*/
 		
 		/*---------Update Matrix---------*/
-		for (size_t i = 0; i < matrix_p1.size(); ++i) {
-			for (size_t j = 0; j < matrix_p1[i].size(); j++)
+		for (size_t i = 0; i < matrix.size(); ++i) {
+			for (size_t j = 0; j < matrix[i].size(); j++)
 			{
-				matrix_p1[i][j]->update();
-				matrix_p2[i][j]->update();
+				matrix[i][j]->update();
 			}
 		}
 	};
 	void renderGame(sf::RenderWindow* win) 
 	{
-		/*----------Draw grid----------*/
-		for (std::size_t i = 0; i < m_grid.size(); ++i) 
-		{
-			m_grid[i]->render(win);
-		}
-		/*--------Draw objects--------*/
-		for (std::size_t i = 0; i < m_gameObjects.size(); ++i) 
-		{
-			m_gameObjects[i]->render(win);
-		}
+		///*----------Draw grid----------*/
+		//for (std::size_t i = 0; i < m_grid.size(); ++i) 
+		//{
+		//	m_grid[i]->render(win);
+		//}
+		///*--------Draw objects--------*/
+		//for (std::size_t i = 0; i < m_gameObjects.size(); ++i) 
+		//{
+		//	m_gameObjects[i]->render(win);
+		//}
 		/*--------Draw Matrix--------*/
-		for (size_t i = 0; i < matrix_p1.size(); ++i) {
-			for (size_t j = 0; j < matrix_p1[i].size(); j++)
+		for (size_t i = 0; i < matrix.size(); ++i) {
+			for (size_t j = 0; j < matrix[i].size(); j++)
 			{
-				matrix_p1[i][j]->render(win);
-				matrix_p2[i][j]->render(win);
+				matrix[i][j]->render(win);
 			}
 		}
 	};
@@ -115,22 +119,13 @@ private:
 		//Add the columns to the matrix for p1
 		for (size_t i = 0; i < m_nHorGrid; ++i) {
 			//Add the rows to the matrix for p1
-			matrix_p1.push_back(std::vector<rectObj*>(m_nVerGrid / 2, 0));
-			for (size_t j = 0; j < m_nVerGrid/2; j++)
+			matrix.push_back(std::vector<quadObj*>(m_nVerGrid, 0));
+			for (size_t j = 0; j < m_nVerGrid; j++)
 			{
-				matrix_p1[i][j] = new rectObj(m_quadSize, m_quadSize, m_quadSize * i, m_quadSize * j, sf::Color::Transparent);
+				matrix[i][j] = new quadObj(m_quadSize, m_quadSize, m_quadSize * i, m_quadSize * j);
 			}
 		}
-
-		//Add the columns to the matrix for p2
-		for (size_t i = 0; i < m_nHorGrid; ++i) {
-			//Add the rows to the matrix for p2
-			matrix_p2.push_back(std::vector<rectObj*>(m_nVerGrid / 2, 0));
-			for (size_t j = 0; j < m_nVerGrid/2; j++)
-			{
-				matrix_p2[i][j] = new rectObj(m_quadSize, m_quadSize, m_quadSize * i, (m_quadSize*(m_nVerGrid / 2)) + m_quadSize * j, sf::Color::Transparent);
-			}
-		}
+		addMines();
 	}
 
 	void createGrid() 
@@ -159,21 +154,40 @@ private:
 		}
 	}
 
-	void findMouseQuad(int x, int y)
+	void addMines()
 	{
-		if (y < (m_nVerGrid/2) * m_quadSize)
+		int nMinesPlaced = 0;
+		srand(time(NULL));
+		while (nMinesPlaced < m_nMines)
 		{
-			matrix_p1[x / m_quadSize][y / m_quadSize]->changeFillColor(sf::Color(1, 205, 254));
-		}
-		else
-		{
-			matrix_p2[(x / m_quadSize)][y / m_quadSize - (m_nVerGrid / 2)]->changeFillColor(sf::Color(185, 103, 255));
+			if (matrix[rand() % m_nHorGrid][rand() % m_nVerGrid]->setMine()) { nMinesPlaced++; }
 		}
 	}
+
 	/*------------------------Input Related------------------------*/
 	void highlightQuad(float width, float height, float posX, float posY)
 	{
 
+	}
+	
+	void showQuad(int x, int y)
+	{
+		if (x >= 0 && x <= m_nHorGrid && y >= 0 && y <= m_nVerGrid)
+		{
+			for (size_t i = 0; i <= 2; i++)
+			{
+				for (size_t j = 0; j <= 2; j++)
+				{
+					matrix[x][y]->showQuad();
+					showQuad(x - 1 + i, y - 1 + j);
+				}
+			}
+		}
+	}
+	
+	void setWarning(int x, int y)
+	{
+		matrix[x][y]->setWarning();
 	}
 
 	/*------------------------Simple shapes addition------------------------*/

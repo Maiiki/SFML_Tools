@@ -30,6 +30,9 @@
     <ClCompile Include="GameBattleShips.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="quadObj.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="circle.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GameBattleShips.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="quadObj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
