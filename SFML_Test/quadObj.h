@@ -94,7 +94,7 @@ public:
 	void addMineCounter()
 	{
 		m_closeMines++;
-		num.setString(m_closeMines);
+		//num.setString(m_closeMines);
 	}
 
 	int giveState()
@@ -106,9 +106,9 @@ public:
 
 	void loadNum()
 	{
-		num.setString("");
+		num.setString("5");
 		num.setPosition(sf::Vector2f(m_posX + m_posAdjust, m_posY + m_posAdjust));
-		num.setCharacterSize(m_posAdjust);
+		num.setCharacterSize(m_w/2);
 		num.setFillColor(sf::Color(1, 205, 254));
 	}
 	void setWarning() { b_isWarning = !b_isWarning; }
