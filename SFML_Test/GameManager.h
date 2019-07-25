@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 #include <vector>
 #include "iostream"
 #include "shape.h"
@@ -17,6 +18,17 @@ public:
 		: m_winW(windowWidth), m_winH(windowHeight), m_nHorGrid(nHorGrid), m_nVerGrid(nVerGrid), m_quadSize(quadSize), m_nMines(nMines)
 	{
 		p_win = new sf::RenderWindow(sf::VideoMode(m_winW, m_winH), "SFML Tools", sf::Style::None);
+		try
+		{
+			sf::FileInputStream stream;
+			stream.open("Dry Brush.ttf");
+			sf::Font font;
+			font.loadFromStream(stream);
+		}
+		catch (const std::exception&)
+		{
+
+		}
 		gameLoop();
 	}
 
@@ -26,8 +38,10 @@ private:
 	std::vector<shapeObj*> m_gameObjects;
 	sf::RenderWindow* p_win;
 	sf::Window* p_refWin;
+	sf::Font font;
 	std::vector<std::vector<quadObj*>>matrix;
 	bool b_Alive;
+	sf::Text text;
 
 	void gameLoop() 
 	{
@@ -47,11 +61,11 @@ private:
 				{
 					if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
 					{
-						showQuad(event.mouseButton.x/m_quadSize, event.mouseButton.y/m_quadSize);
+						showQuad(event.mouseButton.x / m_quadSize, event.mouseButton.y / m_quadSize);
 					}
 					if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
 					{
-						setWarning(event.mouseButton.x/m_quadSize, event.mouseButton.y/m_quadSize);
+						setWarning((event.mouseButton.x/m_quadSize), (event.mouseButton.y/m_quadSize));
 					}
 				}
 			}
@@ -122,10 +136,11 @@ private:
 			matrix.push_back(std::vector<quadObj*>(m_nVerGrid, 0));
 			for (size_t j = 0; j < m_nVerGrid; j++)
 			{
-				matrix[i][j] = new quadObj(m_quadSize, m_quadSize, m_quadSize * i, m_quadSize * j);
+				matrix[i][j] = new quadObj(m_quadSize, m_quadSize, m_quadSize * i, m_quadSize * j, font);
 			}
 		}
 		addMines();
+		countMines();
 	}
 
 	void createGrid() 
@@ -164,6 +179,28 @@ private:
 		}
 	}
 
+	void countMines() {
+		for (size_t i = 0; i < m_nHorGrid; i++)
+		{
+			for (size_t j = 0; j < m_nVerGrid; j++)
+			{
+				for (size_t k = 0; k < 3; k++)
+				{
+					for (size_t l = 0; l < 3; l++)
+					{
+						if (!((i < 1) || (i > m_nHorGrid - 2) || (j < 1) || (j > m_nVerGrid - 2)))
+						{
+							if (matrix[i - 1 + k][j - 1 + l]->giveState() == 2)
+							{
+								matrix[i][j]->addMineCounter();
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/*------------------------Input Related------------------------*/
 	void highlightQuad(float width, float height, float posX, float posY)
 	{
@@ -172,14 +209,17 @@ private:
 	
 	void showQuad(int x, int y)
 	{
-		if (x >= 0 && x <= m_nHorGrid && y >= 0 && y <= m_nVerGrid)
-		{
-			for (size_t i = 0; i <= 2; i++)
+		if (matrix[x][y]->giveState() == 0) {
+			matrix[x][y]->showQuad();
+			if (!((x < 1) || (x > m_nHorGrid - 2) || (y < 1) || (y > m_nVerGrid - 2)))
 			{
-				for (size_t j = 0; j <= 2; j++)
+				for (size_t i = 0; i <= 2; ++i)
 				{
-					matrix[x][y]->showQuad();
-					showQuad(x - 1 + i, y - 1 + j);
+					for (size_t j = 0; j <= 2; ++j)
+					{
+						showQuad(x - 1 + i, y - 1 + j);
+						//matrix[x - 1 + i][y - 1 + j]->showQuad();	
+					}
 				}
 			}
 		}

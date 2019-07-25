@@ -3,7 +3,7 @@
 class quadObj :	public shapeObj
 {
 private:
-	float m_w, m_h, m_posX, m_posY, m_lineThick, m_bombAdjust;
+	float m_w, m_h, m_posX, m_posY, m_lineThick, m_posAdjust;
 	bool b_isMine;
 	bool b_isShown;
 	bool b_isWarning;
@@ -11,9 +11,12 @@ private:
 	sf::Color m_lineColor;
 	sf::RectangleShape rect;
 	sf::CircleShape circle;
+	size_t m_closeMines;
+	sf::Font m_font;
+	sf::Text num;
 
 public:
-	quadObj(float width, float height, float posX, float posY)
+	quadObj(float width, float height, float posX, float posY, sf::Font font)
 		:m_w(width), m_h(height), m_posX(posX), m_posY(posY)
 	{
 		m_fillColor = sf::Color(99, 126, 168);
@@ -22,16 +25,20 @@ public:
 		b_isMine = false;
 		b_isShown = false;
 		b_isWarning = false;
+
 		rect.setSize(sf::Vector2f(m_w, m_h));
 		rect.setPosition(sf::Vector2f(m_posX, m_posY));
 		rect.setFillColor(m_fillColor);
 		rect.setOutlineColor(m_lineColor);
 		rect.setOutlineThickness(m_lineThick);
 
-		m_bombAdjust = m_w/4;
-		circle.setRadius((m_w/2)- m_bombAdjust);
-		circle.setPosition(sf::Vector2f(m_posX+ m_bombAdjust, m_posY+ m_bombAdjust));
+		m_posAdjust = m_w/4;
+		circle.setRadius((m_w/2)- m_posAdjust);
+		circle.setPosition(sf::Vector2f(m_posX+ m_posAdjust, m_posY+ m_posAdjust));
 		circle.setFillColor(sf::Color(255, 251, 150));
+
+		m_font = font;
+		num.setFont(m_font);
 	}
 
 	virtual void render(sf::RenderWindow* win)
@@ -41,6 +48,14 @@ public:
 			if (b_isMine)
 			{
 				win->draw(circle);
+			}
+			else
+			{
+				if (m_closeMines > 0)
+				{
+					loadNum();
+					win->draw(num);
+				}
 			}
 		}
 		else
@@ -76,11 +91,25 @@ public:
 		m_lineThick = thickness;
 	}
 	
+	void addMineCounter()
+	{
+		m_closeMines++;
+		num.setString(m_closeMines);
+	}
+
 	int giveState()
 	{
 		if (b_isShown) { return 1; }
 		else if (b_isMine) { return 2; }
 		else { return 0; }
+	}
+
+	void loadNum()
+	{
+		num.setString("");
+		num.setPosition(sf::Vector2f(m_posX + m_posAdjust, m_posY + m_posAdjust));
+		num.setCharacterSize(m_posAdjust);
+		num.setFillColor(sf::Color(1, 205, 254));
 	}
 	void setWarning() { b_isWarning = !b_isWarning; }
 	void showQuad() { if (!b_isWarning) { b_isShown = true; } }
