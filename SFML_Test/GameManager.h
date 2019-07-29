@@ -18,59 +18,79 @@ public:
 		: m_winW(windowWidth), m_winH(windowHeight), m_nHorGrid(nHorGrid), m_nVerGrid(nVerGrid), m_quadSize(quadSize), m_nMines(nMines)
 	{
 		p_win = new sf::RenderWindow(sf::VideoMode(m_winW, m_winH), "SFML Tools", sf::Style::None);
-		try
-		{
-			sf::FileInputStream stream;
-			stream.open("Dry Brush.ttf");
-			sf::Font font;
-			font.loadFromStream(stream);
-		}
-		catch (const std::exception&)
-		{
-
-		}
+		m_empties = (m_nHorGrid * m_nVerGrid) - m_nMines;
 		gameLoop();
 	}
 
 private:
-	std::size_t m_winW, m_winH, m_nHorGrid, m_nVerGrid, m_quadSize, m_nMines;
+	std::size_t m_winW, m_winH, m_nHorGrid, m_nVerGrid, m_quadSize, m_nMines, m_revealed, m_empties;
 	std::vector<lineObj*> m_grid;
 	std::vector<shapeObj*> m_gameObjects;
 	sf::RenderWindow* p_win;
 	sf::Window* p_refWin;
-	sf::Font font;
 	std::vector<std::vector<quadObj*>>matrix;
-	bool b_Alive;
-	sf::Text text;
+	bool b_Alive, b_firstClick, b_Won;
+	int mouse_x, mouse_y;
+	/*sf::Font m_font;
+	sf::FileInputStream m_stream;*/
 
 	void gameLoop() 
 	{
+		//loadFont();
 		createMatrix();
 		//createGrid();
 		b_Alive = true;
-		while (p_win->isOpen() && b_Alive)
+		b_Won = false;
+		b_firstClick = true;
+		m_revealed = 0;
+		while (p_win->isOpen())
 		{
 			sf::Event event;
 			while (p_win->pollEvent(event))
 			{
-				if (event.type == sf::Event::Closed)
+				if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 				{
 					p_win->close();
 				}
+
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {resetGame();}
+
+				if (event.type == sf::Event::MouseMoved)
+				{
+					mouse_x = event.mouseMove.x / m_quadSize;
+					mouse_y = event.mouseMove.y / m_quadSize;
+				}
+
 				if (event.type == sf::Event::MouseButtonPressed)
 				{
-					if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+					if (b_Alive && !b_Won)
 					{
-						showQuad(event.mouseButton.x / m_quadSize, event.mouseButton.y / m_quadSize);
+						if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+						{
+							if (b_firstClick)
+							{
+								addMines(event.mouseButton.x / m_quadSize, event.mouseButton.y / m_quadSize);
+								countMines();
+								b_firstClick = false;
+							}
+							if (checkMine(event.mouseButton.x / m_quadSize, event.mouseButton.y / m_quadSize)) {
+								showQuad(event.mouseButton.x / m_quadSize, event.mouseButton.y / m_quadSize);
+							}
+						}
+
+						if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+						{
+							setWarning((event.mouseButton.x / m_quadSize), (event.mouseButton.y / m_quadSize));
+						}
 					}
-					if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
-					{
-						setWarning((event.mouseButton.x/m_quadSize), (event.mouseButton.y/m_quadSize));
-					}
+						
 				}
 			}
 
-			p_win->clear(sf::Color(253, 43, 134));
+			if (b_Alive && !b_Won) { p_win->clear(sf::Color(253, 43, 134)); }
+			else if (b_Won) { p_win->clear(sf::Color(52, 68, 102)); }
+			else { p_win->clear(sf::Color(138, 7, 7)); }
+			
 			updateGame();
 			renderGame(p_win);
 			p_win->display();
@@ -78,13 +98,15 @@ private:
 		deleteAll();
 	}
 
-	void updateGame() 
+	void updateGame()
 	{
-		/*for (std::size_t i = 0; i < m_gameObjects.size(); ++i) 
+		/*for (std::size_t i = 0; i < m_gameObjects.size(); ++i)
 		{
 			m_gameObjects[i]->update();
 		}*/
-		
+
+		/*---------Highlight quad---------*/
+		matrix[mouse_x][mouse_y]->mouseOn();
 		/*---------Update Matrix---------*/
 		for (size_t i = 0; i < matrix.size(); ++i) {
 			for (size_t j = 0; j < matrix[i].size(); j++)
@@ -92,7 +114,8 @@ private:
 				matrix[i][j]->update();
 			}
 		}
-	};
+	}
+
 	void renderGame(sf::RenderWindow* win) 
 	{
 		///*----------Draw grid----------*/
@@ -112,7 +135,7 @@ private:
 				matrix[i][j]->render(win);
 			}
 		}
-	};
+	}
 
 	void deleteAll()
 	{
@@ -128,6 +151,29 @@ private:
 		}
 	}
 
+	void resetGame()
+	{
+		matrix.clear();
+		createMatrix();
+		b_Alive = true;
+		b_Won = false;
+		b_firstClick = true;
+		m_revealed = 0;
+	}
+
+	/*void loadFont()
+	{
+		try
+		{
+			m_stream.open("Resources/Dry Brush.ttf");
+			m_font.loadFromStream(m_stream);
+		}
+		catch (const std::exception&)
+		{
+			std::cout << "Cant do" << std::endl;
+		}
+	}*/
+
 	void createMatrix()
 	{
 		//Add the columns to the matrix for p1
@@ -136,11 +182,9 @@ private:
 			matrix.push_back(std::vector<quadObj*>(m_nVerGrid, 0));
 			for (size_t j = 0; j < m_nVerGrid; j++)
 			{
-				matrix[i][j] = new quadObj(m_quadSize, m_quadSize, m_quadSize * i, m_quadSize * j, font);
+				matrix[i][j] = new quadObj(m_quadSize, m_quadSize, m_quadSize * i, m_quadSize * j);
 			}
 		}
-		addMines();
-		countMines();
 	}
 
 	void createGrid() 
@@ -169,59 +213,129 @@ private:
 		}
 	}
 
-	void addMines()
+	void addMines(int x, int y)
 	{
 		int nMinesPlaced = 0;
 		srand(time(NULL));
+		int mine_x;
+		int mine_y;
 		while (nMinesPlaced < m_nMines)
 		{
-			if (matrix[rand() % m_nHorGrid][rand() % m_nVerGrid]->setMine()) { nMinesPlaced++; }
+			mine_x = rand() % m_nHorGrid;
+			mine_y = rand() % m_nVerGrid;
+
+			if (mine_x != x || mine_y != y)
+			{
+				if (matrix[mine_x][mine_y]->setMine()) { nMinesPlaced++; }
+			}
 		}
 	}
 
 	void countMines() {
-		for (size_t i = 0; i < m_nHorGrid; i++)
+		for (size_t x = 0; x < m_nHorGrid; x++)
 		{
-			for (size_t j = 0; j < m_nVerGrid; j++)
+			for (size_t y = 0; y < m_nVerGrid; y++)
 			{
-				for (size_t k = 0; k < 3; k++)
+				if (matrix[x][y]->giveState() != 2)
 				{
-					for (size_t l = 0; l < 3; l++)
+					if (y > 0) { if (matrix[x][y - 1]->giveState() == 2) { matrix[x][y]->addMineCounter(); } }
+					if (y < m_nVerGrid - 1) { if (matrix[x][y + 1]->giveState() == 2) { matrix[x][y]->addMineCounter(); } }
+					if (x > 0)
 					{
-						if (!((i < 1) || (i > m_nHorGrid - 2) || (j < 1) || (j > m_nVerGrid - 2)))
-						{
-							if (matrix[i - 1 + k][j - 1 + l]->giveState() == 2)
-							{
-								matrix[i][j]->addMineCounter();
-							}
-						}
+						if (matrix[x - 1][y]->giveState() == 2) { matrix[x][y]->addMineCounter(); }
+						if (y > 0) { if (matrix[x - 1][y - 1]->giveState() == 2) { matrix[x][y]->addMineCounter(); } }
+						if (y < m_nVerGrid - 1) { if (matrix[x - 1][y + 1]->giveState() == 2) { matrix[x][y]->addMineCounter(); } }
+					}
+					if (x < m_nHorGrid - 1)
+					{
+						if (matrix[x + 1][y]->giveState() == 2) { matrix[x][y]->addMineCounter(); }
+						if (y > 0) { if (matrix[x + 1][y - 1]->giveState() == 2) { matrix[x][y]->addMineCounter(); } }
+						if (y < m_nVerGrid - 1) { if (matrix[x + 1][y + 1]->giveState() == 2) { matrix[x][y]->addMineCounter(); } }
 					}
 				}
+				////Deprecated
+				//for (size_t k = 0; k < 3; k++)
+				//{
+				//	for (size_t l = 0; l < 3; l++)
+				//	{
+				//		if (!((x < 1) || (x > m_nHorGrid - 2) || (y < 1) || (y > m_nVerGrid - 2)))
+				//		{
+				//			if (matrix[x - 1 + k][y - 1 + l]->giveState() == 2)
+				//			{
+				//				matrix[x][y]->addMineCounter();
+				//			}
+				//		}
+				//	}
+				//}
+			}
+		}
+	}
+
+	void showMines()
+	{
+		for (size_t x = 0; x < matrix.size(); x++)
+		{
+			for (size_t y = 0; y < matrix[x].size(); y++)
+			{
+				if (matrix[x][y]->giveState() == 2) { matrix[x][y]->showQuad(); }
 			}
 		}
 	}
 
 	/*------------------------Input Related------------------------*/
-	void highlightQuad(float width, float height, float posX, float posY)
-	{
-
-	}
 	
+	bool checkMine(int x, int y)
+	{
+		int quadState = matrix[x][y]->giveState();
+		if (quadState == 2)
+		{
+			showMines();
+			b_Alive = false;
+			std::cout << "Player lost..." << std::endl;
+		}
+		return b_Alive;
+	}
+
 	void showQuad(int x, int y)
 	{
-		if (matrix[x][y]->giveState() == 0) {
+		int quadState = matrix[x][y]->giveState();
+		
+		if (quadState != 2 && quadState != 1)
+		{
 			matrix[x][y]->showQuad();
-			if (!((x < 1) || (x > m_nHorGrid - 2) || (y < 1) || (y > m_nVerGrid - 2)))
+			m_revealed++;
+			if (m_revealed == m_empties)
 			{
-				for (size_t i = 0; i <= 2; ++i)
-				{
-					for (size_t j = 0; j <= 2; ++j)
-					{
-						showQuad(x - 1 + i, y - 1 + j);
-						//matrix[x - 1 + i][y - 1 + j]->showQuad();	
-					}
-				}
+				b_Won = true;
+				std::cout << "Player won!!" << std::endl;
 			}
+			if (x > 0)
+			{
+				showQuad(x - 1, y);
+			}
+			if (y > 0)
+			{
+				showQuad(x, y - 1);
+			}
+			if (x < m_nHorGrid-1)
+			{
+				showQuad(x + 1, y);
+			}
+			if (y < m_nVerGrid-1)
+			{
+				showQuad(x, y + 1);
+			}
+			//if (!((x < 1) || (x > m_nHorGrid - 2) || (y < 1) || (y > m_nVerGrid - 2)))
+			//{
+			//	//for (size_t i = 0; i <= 2; ++i)
+			//	//{
+			//	//	for (size_t j = 0; j <= 2; ++j)
+			//	//	{
+			//	//		showQuad(x - 1 + i, y - 1 + j);
+			//	//		//matrix[x - 1 + i][y - 1 + j]->showQuad();	
+			//	//	}
+			//	//}
+			//}
 		}
 	}
 	
